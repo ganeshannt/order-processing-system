@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: order-processing-system
+  threads:
+    virtual:
+      enabled: true  # Java 21 Virtual Threads
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+    default-property-inclusion: non_null
+
+  # Profile selection (can be overridden via command line or environment variable)
+  # Default to dev profile if none specified
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    root: INFO
+    io.ganeshannt.asm.ops: DEBUG
+    org.springframework.web: INFO
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
