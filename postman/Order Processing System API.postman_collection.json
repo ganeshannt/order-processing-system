@@ -1,0 +1,966 @@
+{
+	"info": {
+		"_postman_id": "6945dcd9-5a27-4ed0-bd21-65a90fac6b5d",
+		"name": "Order Processing System API",
+		"description": "Production-grade E-commerce Order Processing System REST API\n\n**Features:**\n- Create orders with multiple items\n- Retrieve order details with pagination (1-indexed)\n- Automatic order status updates (PENDING → PROCESSING every 5 minutes)\n- Cancel orders (PENDING only) using PATCH\n- Comprehensive validation and error handling\n\n**Technology Stack:**\n- Java 21 (Virtual Threads)\n- Spring Boot 3.5.6\n- Spring Data JPA\n- H2 Database\n\n**Base URL:** http://localhost:8080\n\n**Pagination:**\n- Page numbers start from 1 (not 0)\n- Default: page=1, size=10\n- Orders sorted by createdAt DESC (newest first)\n\n**Version:** 1.3\n**Last Updated:** October 23, 2025",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16118324"
+	},
+	"item": [
+		{
+			"name": "Orders - CRUD",
+			"item": [
+				{
+					"name": "Create Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test script to automatically save order ID",
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"order_id\", jsonData.id);",
+									"    pm.test(\"Order created successfully\", function () {",
+									"        pm.expect(jsonData.status).to.eql(\"PENDING\");",
+									"        pm.expect(jsonData.id).to.be.a('number');",
+									"    });",
+									"    console.log('Order created with ID: ' + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerEmail\": \"test.user@example.com\",\n  \"items\": [\n    {\n      \"productName\": \"Laptop\",\n      \"quantity\": 1,\n      \"price\": 1299.99\n    },\n    {\n      \"productName\": \"Mouse\",\n      \"quantity\": 2,\n      \"price\": 25.50\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							]
+						},
+						"description": "Create a new order with multiple items. Order starts in PENDING status.\n\n**Request Body:**\n- customerEmail (string, required): Valid email address\n- items (array, required): At least one item\n  - productName (string, required): 1-200 characters\n  - quantity (integer, required): 1-1000\n  - price (decimal, required): 0.01-1000000.00\n\n**Response:** 201 CREATED with order details\n**Order ID is automatically saved to environment variable**"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order - Large (5 items)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerEmail\": \"bigorder@example.com\",\n  \"items\": [\n    {\n      \"productName\": \"Gaming PC\",\n      \"quantity\": 1,\n      \"price\": 2999.99\n    },\n    {\n      \"productName\": \"Gaming Monitor 27 inch\",\n      \"quantity\": 2,\n      \"price\": 399.99\n    },\n    {\n      \"productName\": \"Mechanical Keyboard RGB\",\n      \"quantity\": 1,\n      \"price\": 149.99\n    },\n    {\n      \"productName\": \"Gaming Mouse Pro\",\n      \"quantity\": 1,\n      \"price\": 79.99\n    },\n    {\n      \"productName\": \"Headset\",\n      \"quantity\": 1,\n      \"price\": 199.99\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							]
+						},
+						"description": "Create a large order with multiple items (5+ items)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order - Invalid Email (Error Test)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerEmail\": \"invalid-email\",\n  \"items\": [\n    {\n      \"productName\": \"Laptop\",\n      \"quantity\": 1,\n      \"price\": 999.99\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							]
+						},
+						"description": "Test validation: Invalid email format\n\n**Expected:** 400 BAD REQUEST with validation error"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order - Empty Items (Error Test)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerEmail\": \"test@example.com\",\n  \"items\": []\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							]
+						},
+						"description": "Test validation: Empty items array\n\n**Expected:** 400 BAD REQUEST with validation error"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"1"
+							]
+						},
+						"description": "Retrieve order details by ID including all items.\n\n**Path Parameter:**\n- id (Long): Order identifier\n\n**Response:** 200 OK with order details or 404 NOT FOUND"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order by ID - Variable",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/{{order_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"{{order_id}}"
+							]
+						},
+						"description": "Get order using environment variable (saved from Create Order)\n\nUses {{order_id}} variable set automatically after creating an order."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order - Not Found (Error Test)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"999"
+							]
+						},
+						"description": "Test error handling: Order doesn't exist\n\n**Expected:** 404 NOT FOUND"
+					},
+					"response": []
+				}
+			],
+			"description": "CRUD operations for order management"
+		},
+		{
+			"name": "Orders - Pagination",
+			"item": [
+				{
+					"name": "Get All Orders - Default",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							]
+						},
+						"description": "Get all orders with default pagination.\n\n**Default Values:**\n- page: 1\n- size: 10\n- Sorted by: createdAt DESC (newest first)\n\n**Response:** Paginated list with 10 orders from page 1"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - Page 2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?page=2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Get second page with default size (10 items)\n\n**Note:** Page numbers start from 1 (not 0)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - Page 3",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?page=3",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "3"
+								}
+							]
+						},
+						"description": "Get third page with default size (10 items)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - Page 1, 20 Items",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?page=1&size=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get first page with 20 items per page"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - 50 Per Page",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?size=50",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "50"
+								}
+							]
+						},
+						"description": "Get 50 items per page (page defaults to 1)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - Maximum Size (100)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?size=100",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "100"
+								}
+							]
+						},
+						"description": "Get maximum allowed items per page (100)\n\nAny size > 100 will be clamped to 100"
+					},
+					"response": []
+				}
+			],
+			"description": "Pagination requests for order listing"
+		},
+		{
+			"name": "Orders - Status Filters",
+			"item": [
+				{
+					"name": "Get Orders - PENDING",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?status=PENDING",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PENDING"
+								}
+							]
+						},
+						"description": "Get PENDING orders with default pagination.\n\nThese orders will be automatically promoted to PROCESSING by the scheduler every 5 minutes."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - PENDING Page 2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?status=PENDING&page=2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PENDING"
+								},
+								{
+									"key": "page",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Get second page of PENDING orders"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - PROCESSING",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?status=PROCESSING",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PROCESSING"
+								}
+							]
+						},
+						"description": "Get orders that are currently being processed"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - SHIPPED",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?status=SHIPPED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "SHIPPED"
+								}
+							]
+						},
+						"description": "Get orders that have been shipped"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - SHIPPED Page 2, 50 Items",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?status=SHIPPED&page=2&size=50",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "SHIPPED"
+								},
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "size",
+									"value": "50"
+								}
+							]
+						},
+						"description": "Get page 2 of SHIPPED orders with 50 items per page"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - DELIVERED",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?status=DELIVERED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "DELIVERED"
+								}
+							]
+						},
+						"description": "Get successfully delivered orders"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders - CANCELLED",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders?status=CANCELLED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "CANCELLED"
+								}
+							]
+						},
+						"description": "Get cancelled orders"
+					},
+					"response": []
+				}
+			],
+			"description": "Filter orders by status with pagination support"
+		},
+		{
+			"name": "Orders - Cancel & Update",
+			"item": [
+				{
+					"name": "Cancel Order (PENDING only)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/1/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"1",
+								"cancel"
+							]
+						},
+						"description": "Cancel an order using PATCH (partial update).\n\n**HTTP Method:** PATCH (semantically correct for partial updates)\n\n**Business Rule:** Only PENDING orders can be cancelled.\n\n**Status Codes:**\n- 200 OK: Order cancelled successfully\n- 400 BAD REQUEST: Order cannot be cancelled (not PENDING)\n- 404 NOT FOUND: Order doesn't exist"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Order - Using Variable",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/{{order_id}}/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"{{order_id}}",
+								"cancel"
+							]
+						},
+						"description": "Cancel order using saved order_id variable"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Order - Invalid Status (Error Test)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/2/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"2",
+								"cancel"
+							]
+						},
+						"description": "Test error: Try to cancel non-PENDING order\n\n**Expected:** 400 BAD REQUEST with error message explaining only PENDING orders can be cancelled."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status - PENDING to PROCESSING",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/1/status?status=PROCESSING",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PROCESSING"
+								}
+							]
+						},
+						"description": "Update order status from PENDING to PROCESSING.\n\n**Valid Transition:** PENDING → PROCESSING ✓"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status - PROCESSING to SHIPPED",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/2/status?status=SHIPPED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"2",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "SHIPPED"
+								}
+							]
+						},
+						"description": "Update order status from PROCESSING to SHIPPED.\n\n**Valid Transition:** PROCESSING → SHIPPED ✓"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status - SHIPPED to DELIVERED",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/3/status?status=DELIVERED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"3",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "DELIVERED"
+								}
+							]
+						},
+						"description": "Update order status from SHIPPED to DELIVERED.\n\n**Valid Transition:** SHIPPED → DELIVERED ✓\n\nDELIVERED is a terminal state (no further transitions)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status - PENDING to CANCELLED",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/6/status?status=CANCELLED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"6",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "CANCELLED"
+								}
+							]
+						},
+						"description": "Update order status from PENDING to CANCELLED.\n\n**Valid Transition:** PENDING → CANCELLED ✓"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status - Invalid Transition (Error Test)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/4/status?status=PENDING",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"4",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PENDING"
+								}
+							]
+						},
+						"description": "Test error: Invalid status transition (DELIVERED → PENDING)\n\n**Expected:** 400 BAD REQUEST with error explaining invalid transition."
+					},
+					"response": []
+				}
+			],
+			"description": "Cancel orders and update order status"
+		},
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Actuator - Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check application health status.\n\n**Response:**\n``````"
+					},
+					"response": []
+				},
+				{
+					"name": "Actuator - Application Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/info",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"info"
+							]
+						},
+						"description": "Get application information and build details."
+					},
+					"response": []
+				},
+				{
+					"name": "Actuator - Metrics List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/metrics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"metrics"
+							]
+						},
+						"description": "List all available metrics.\n\nUse `/actuator/metrics/{metric-name}` to get specific metric details."
+					},
+					"response": []
+				},
+				{
+					"name": "Actuator - Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/prometheus",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"prometheus"
+							]
+						},
+						"description": "Prometheus-formatted metrics for monitoring.\n\nUseful for production monitoring with Prometheus + Grafana."
+					},
+					"response": []
+				}
+			],
+			"description": "Health checks and monitoring endpoints"
+		},
+		{
+			"name": "API Documentation",
+			"item": [
+				{
+					"name": "OpenAPI JSON Specification",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api-docs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api-docs"
+							]
+						},
+						"description": "Get OpenAPI 3.0 specification in JSON format.\n\nCan be imported into other tools for API testing and documentation."
+					},
+					"response": []
+				},
+				{
+					"name": "Swagger UI (Browser)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/swagger-ui.html",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"swagger-ui.html"
+							]
+						},
+						"description": "Interactive API documentation with Swagger UI.\n\n**Note:** Open this URL in a browser for interactive testing.\n\nURL: http://localhost:8080/swagger-ui.html"
+					},
+					"response": []
+				}
+			],
+			"description": "API documentation endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Pre-request script for all requests",
+					"console.log('Making request to:', pm.request.url.toString());"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script for all requests",
+					"",
+					"// Test: Response time should be reasonable",
+					"pm.test(\"Response time is acceptable\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});",
+					"",
+					"// Test: Content-Type should be JSON (except for Swagger UI)",
+					"if (!pm.request.url.path.includes('swagger-ui')) {",
+					"    pm.test(\"Content-Type is application/json\", function () {",
+					"        pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+					"    });",
+					"}",
+					"",
+					"// Test: Response should have status code",
+					"pm.test(\"Response has valid status code\", function () {",
+					"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 404, 500]);",
+					"});",
+					"",
+					"// Log response for debugging",
+					"console.log('Response Status:', pm.response.status);",
+					"console.log('Response Time:', pm.response.responseTime + 'ms');"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "order_id",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}

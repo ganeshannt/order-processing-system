@@ -8,8 +8,6 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
-    time-zone: UTC
-    default-property-inclusion: non_null
 
   # Profile selection (can be overridden via command line or environment variable)
   # Default to dev profile if none specified
