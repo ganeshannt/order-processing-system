@@ -77,27 +77,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Handle Bean Validation errors (@Valid on @RequestBody)
-     *
-     * HTTP 400 BAD REQUEST
-     * - Triggered by @Valid annotation
-     * - Contains field-level validation errors
-
-     * Example Response:
-     * {
-     *   "status": 400,
-     *   "error": "Validation Failed",
-     *   "message": "Invalid request parameters",
-     *   "validationErrors": [
-     *     {
-     *       "field": "customerEmail",
-     *       "rejectedValue": "invalid-email",
-     *       "message": "Customer email must be valid"
-     *     }
-     *   ]
-     * }
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDTO> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException ex,

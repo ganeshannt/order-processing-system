@@ -12,7 +12,7 @@ import io.ganeshannt.asm.ops.enums.OrderStatus;
  *
  * Maps to HTTP 400 BAD REQUEST
  * - Client sent invalid request (not server error)
- * - Indicates client should not retry without modification
+ * - Indicates a client should not retry without modification
  */
 public class InvalidOrderStatusException extends RuntimeException {
 
@@ -20,15 +20,6 @@ public class InvalidOrderStatusException extends RuntimeException {
         super(message);
     }
 
-    public InvalidOrderStatusException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     * Factory method for invalid cancellation
-     *
-     * Usage: throw InvalidOrderStatusException.cannotCancel(OrderStatus.SHIPPED);
-     */
     public static InvalidOrderStatusException cannotCancel(OrderStatus currentStatus) {
         return new InvalidOrderStatusException(
                 String.format("Cannot cancel order with status %s. Only PENDING orders can be cancelled.",
@@ -36,11 +27,7 @@ public class InvalidOrderStatusException extends RuntimeException {
         );
     }
 
-    /**
-     * Factory method for invalid status transition
-     *
-     * Usage: throw InvalidOrderStatusException.invalidTransition(DELIVERED, PENDING);
-     */
+
     public static InvalidOrderStatusException invalidTransition(
             OrderStatus from, OrderStatus to) {
         return new InvalidOrderStatusException(

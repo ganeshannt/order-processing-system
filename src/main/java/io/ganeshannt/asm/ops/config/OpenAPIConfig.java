@@ -1,11 +1,9 @@
 package io.ganeshannt.asm.ops.config;
 
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,91 +13,83 @@ import java.util.List;
 
 /**
  * @author Ganeshannt
- * @version 1.0
+ * @version 1.1
  * @since 2025-10-23
  */
 @Configuration
 public class OpenAPIConfig {
 
-    @Value("${spring.application.name:Order Processing System}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
+    @Value("${server.port:8080}")
+    private String serverPort;
+
+    private static final String BUILD_DESCRIPTION = """
+            Production-grade REST API for managing e-commerce orders with automated workflows.
+            
+            ## Key Features
+            - Create orders with multiple items
+            - Retrieve order details with pagination (1-indexed)
+            - Automatic status updates (PENDING → PROCESSING every 5 minutes)
+            - Cancel PENDING orders
+            - Comprehensive validation and error handling
+            
+            ## Order Status Lifecycle
+            ```
+            PENDING → PROCESSING → SHIPPED → DELIVERED
+               ↓
+            CANCELLED (only from PENDING)
+            ```
+            
+            ## Technology Stack
+            - **Language:** Java 21
+            - **Framework:** Spring Boot 3.5.6
+            - **Database:** H2 (in-memory)
+            - **Documentation:** OpenAPI 3.0
+            
+            ## Getting Started
+            1. Explore endpoints using the interactive API explorer below
+            2. Click **"Try it out"** on any endpoint
+            3. Fill in required parameters
+            4. Click **"Execute"** to test the API
+            """;
 
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(apiInfo())
-                .servers(apiServers());
+                .info(buildApiInfo())
+                .servers(buildServerList());
     }
 
-    private Info apiInfo() {
+    private Info buildApiInfo() {
         return new Info()
-                .title("Order Processing System API")
+                .title(applicationName + " API")
                 .version("1.0.0")
-                .description("""
-                        # E-commerce Order Processing System REST API
-                        
-                        ## Overview
-                        Production-grade REST API for managing e-commerce orders with automated workflows.
-                        
-                        ## Features
-                        - ✅ Create orders with multiple items
-                        - ✅ Retrieve order details and history
-                        - ✅ Automatic order status updates (PENDING → PROCESSING every 5 minutes)
-                        - ✅ Cancel orders (PENDING only)
-                        - ✅ Order statistics and analytics
-                        - ✅ Comprehensive validation and error handling
-                        
-                        ## Technology Stack
-                        - Java 21 (Virtual Threads)
-                        - Spring Boot 3.5.6
-                        - Spring Data JPA
-                        - H2 Database (in-memory)
-                        - MapStruct (DTO mapping)
-                        - OpenAPI 3.0
-                        
-                        ## Order Status Lifecycle
-                        ```
-                        PENDING → PROCESSING → SHIPPED → DELIVERED
-                           ↓
-                        CANCELLED (only from PENDING)
-                        ```
-                        
-                        ## Getting Started
-                        1. Use the interactive API explorer below
-                        2. Click "Try it out" on any endpoint
-                        3. Fill in required parameters
-                        4. Click "Execute" to test the API
-                        
-                        ## Support
-                        For issues or questions, contact the development team.
-                        """)
-                .contact(new Contact()
-                        .name("Ganeshannt")
-                        .email("ganeshannt@example.com")
-                        .url("https://github.com/ganeshannt"))
-                .license(new License()
-                        .name("MIT License")
-                        .url("https://opensource.org/licenses/MIT"));
+                .description(BUILD_DESCRIPTION)
+                .contact(buildContact())
+                .license(buildLicense());
     }
 
-    /**
-     * API Servers
-     * <p>
-     * Multiple server configurations for different environments
-     * User can switch between servers in Swagger UI
-     */
-    private List<Server> apiServers() {
+    private Contact buildContact() {
+        return new Contact()
+                .name("Ganeshannt")
+                .email("ganeshannt@example.com")
+                .url("https://github.com/ganeshannt");
+    }
+
+
+    private License buildLicense() {
+        return new License()
+                .name("MIT License")
+                .url("https://opensource.org/licenses/MIT");
+    }
+
+    private List<Server> buildServerList() {
         return List.of(
                 new Server()
-                        .url("http://localhost:8080")
-                        .description("Local Development Server"),
-                new Server()
-                        .url("https://api-osp-stg.com")
-                        .description("Staging Server"),
-                new Server()
-                        .url("https://api-osp.com")
-                        .description("Production Server")
+                        .url("http://localhost:" + serverPort)
+                        .description("Local Development Server")
         );
     }
 }

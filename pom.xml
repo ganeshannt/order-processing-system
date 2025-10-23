@@ -21,7 +21,6 @@
         <lombok.version>1.18.42</lombok.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <junit.jupiter.version>5.11.0</junit.jupiter.version>
         <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
     <dependencies>

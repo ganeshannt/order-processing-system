@@ -22,12 +22,6 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-
-    /**
-     * @param status   Order status filter
-     * @param pageable Pagination and sort parameters
-     * @return Page of orders
-     */
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE o.status = 'PENDING'")

@@ -31,20 +31,7 @@ public class PagedResponse<T> {
     @Schema(description = "Total number of pages", example = "10")
     private int totalPages;
 
-    /**
-     * Factory method to create PagedResponse from Spring Page
-     *
-     * Converts 0-indexed Spring page to 1-indexed API response
-     * Excludes first, last, empty flags
-     *
-     * Clients can derive these values:
-     * - isFirst: pageNumber == 1
-     * - isLast: pageNumber == totalPages
-     * - isEmpty: content.size() == 0
-     *
-     * @param page Spring Data Page (0-indexed)
-     * @return PagedResponse with 1-indexed page number
-     */
+
     public static <T> PagedResponse<T> of(org.springframework.data.domain.Page<T> page) {
         return PagedResponse.<T>builder()
                 .content(page.getContent())

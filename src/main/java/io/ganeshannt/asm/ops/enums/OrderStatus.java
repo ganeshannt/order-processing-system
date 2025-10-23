@@ -1,19 +1,5 @@
 package io.ganeshannt.asm.ops.enums;
 
-/**
- * Order Status Enum
- *
- * Design Decision: Using enum instead of String for type safety
- * - Compile-time validation
- * - Auto-completion in IDEs
- * - Cannot have invalid values
- *
- * State Transitions:
- * PENDING → PROCESSING (automatic via scheduler or manual)
- * PROCESSING → SHIPPED (manual)
- * SHIPPED → DELIVERED (manual)
- * PENDING → CANCELLED (only from PENDING state)
- */
 public enum OrderStatus {
     /**
      * Initial state when order is created
@@ -40,14 +26,7 @@ public enum OrderStatus {
      */
     CANCELLED;
 
-    /**
-     * Check if status transition is valid
-     *
-     * Why this method?
-     * - Centralizes business rule validation
-     * - Prevents invalid state transitions
-     * - Makes testing easier
-     */
+
     public boolean canTransitionTo(OrderStatus newStatus) {
         return switch (this) {
             case PENDING -> newStatus == PROCESSING || newStatus == CANCELLED;

@@ -27,8 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("Order Processing System - WebTestClient Integration Tests")
-class OrderControllerFunctionalTest {
+@DisplayName("Order Processing System Tests")
+class OrderControllerTest {
 
     @Autowired
     private WebTestClient webTestClient;

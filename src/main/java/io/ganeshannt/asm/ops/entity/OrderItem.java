@@ -37,14 +37,6 @@ public class OrderItem {
 
     /**
      * Many-to-One relationship with Order
-     *
-     * Why FetchType.LAZY?
-     * - Performance: Don't load Order unless explicitly needed
-     * - Prevents circular loading issues
-     *
-     * Why @ToString.Exclude and @EqualsAndHashCode.Exclude?
-     * - Prevents StackOverflowError in bidirectional relationships
-     * - Order.toString() would call OrderItem.toString() which would call Order.toString()...
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
@@ -52,14 +44,6 @@ public class OrderItem {
     @EqualsAndHashCode.Exclude
     private Order order;
 
-    /**
-     * Calculate line total (price * quantity)
-     *
-     * Why a method?
-     * - Encapsulates calculation logic
-     * - Ensures consistency
-     * - Easy to modify formula in one place
-     */
     public BigDecimal getLineTotal() {
         return price.multiply(BigDecimal.valueOf(quantity));
     }

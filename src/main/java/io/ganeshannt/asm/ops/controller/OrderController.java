@@ -24,14 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Order REST Controller with Pagination Support
- *
- * Pagination Design:
- * - Page numbers: 1-1000 (user-friendly, 1-indexed)
- * - Default page: 1
- * - Default size: 10
- * - Fixed sorting: createdAt DESC (newest first)
- *
  * @author Ganeshannt
  * @version 1.3
  * @since 2025-10-23
@@ -127,95 +119,34 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get all orders with pagination support
-     *
-     * Pagination Design:
-     * ==================
-     *
-     * Page Numbering: 1-indexed (user-friendly)
-     * - page=1 → First page (NOT page=0)
-     * - page=2 → Second page
-     * - Valid range: 1-1000
-     *
-     * Sorting: Fixed (createdAt DESC)
-     * - Orders always sorted by creation date
-     * - Newest orders appear first
-     * - No custom sorting parameters needed
-     *
-     * Parameters:
-     * ===========
-     *
-     * @param page   Page number (1-1000), default: 1
-     * @param size   Page size (1-100), default: 10
-     * @param status Optional status filter
-     *
-     * Examples:
-     * =========
-     *
-     * 1. Default: First page, 10 items
-     *    GET /api/v1/orders
-     *
-     * 2. Get page 2 with 20 items:
-     *    GET /api/v1/orders?page=2&size=20
-     *
-     * 3. Filter PENDING orders:
-     *    GET /api/v1/orders?status=PENDING
-     *
-     * 4. Filter SHIPPED orders, page 2:
-     *    GET /api/v1/orders?status=SHIPPED&page=2
-     *
-     * 5. Get 50 items per page:
-     *    GET /api/v1/orders?size=50
-     *
-     * Response Format:
-     * ===============
-     * {
-     *   "content": [...],        // Array of orders (sorted by createdAt DESC)
-     *   "pageNumber": 1,         // Current page (1-indexed)
-     *   "pageSize": 10,          // Items per page
-     *   "totalElements": 100,    // Total items
-     *   "totalPages": 10,        // Total pages
-     *   "first": true,           // Is first page?
-     *   "last": false,           // Is last page?
-     *   "empty": false           // Is empty?
-     * }
-     *
-     * Validation:
-     * ===========
-     * - page: Clamped to 1-1000
-     * - size: Clamped to 1-100
-     * - Invalid values automatically corrected
-     *
-     * @return Paginated response with orders sorted by createdAt DESC
-     */
+
     @GetMapping
     @Operation(
             summary = "Get all orders with pagination",
             description = """
-            Retrieves orders with pagination support.
-            
-            **Page Numbering**: 1-indexed (starts from 1, not 0)
-            
-            **Sorting**: Fixed - Orders sorted by creation date (newest first)
-            
-            **Default Behavior**: Returns page 1 with 10 orders
-            
-            **Pagination Parameters**:
-            - `page`: Page number (1-1000), default: 1
-            - `size`: Items per page (1-100), default: 10
-            - `status`: Optional filter by order status
-            
-            **Examples**:
-            ```
-            GET /api/v1/orders                        → Page 1, 10 items
-            GET /api/v1/orders?page=2&size=20         → Page 2, 20 items
-            GET /api/v1/orders?status=PENDING         → PENDING orders, page 1
-            GET /api/v1/orders?status=SHIPPED&page=3  → SHIPPED orders, page 3
-            ```
-            
-            **Note**: Orders are always sorted by creation date (newest first).
-            """
+                    Retrieves orders with pagination support.
+                    
+                    **Page Numbering**: 1-indexed (starts from 1, not 0)
+                    
+                    **Sorting**: Fixed - Orders sorted by creation date (newest first)
+                    
+                    **Default Behavior**: Returns page 1 with 10 orders
+                    
+                    **Pagination Parameters**:
+                    - `page`: Page number (1-1000), default: 1
+                    - `size`: Items per page (1-100), default: 10
+                    - `status`: Optional filter by order status
+                    
+                    **Examples**:
+                    ```
+                    GET /api/v1/orders                        → Page 1, 10 items
+                    GET /api/v1/orders?page=2&size=20         → Page 2, 20 items
+                    GET /api/v1/orders?status=PENDING         → PENDING orders, page 1
+                    GET /api/v1/orders?status=SHIPPED&page=3  → SHIPPED orders, page 3
+                    ```
+                    
+                    **Note**: Orders are always sorted by creation date (newest first).
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -289,12 +220,12 @@ public class OrderController {
     @Operation(
             summary = "Cancel an order",
             description = """
-            Cancels an order by updating its status to CANCELLED.
-            
-            **HTTP Method**: PATCH (partial update)
-            
-            **Business Rule**: Only PENDING orders can be cancelled.
-            """
+                    Cancels an order by updating its status to CANCELLED.
+                    
+                    **HTTP Method**: PATCH (partial update)
+                    
+                    **Business Rule**: Only PENDING orders can be cancelled.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -333,14 +264,14 @@ public class OrderController {
     @Operation(
             summary = "Update order status",
             description = """
-            Updates order status. Validates state transitions.
-            
-            **Valid Transitions**:
-            - PENDING → PROCESSING ✓
-            - PENDING → CANCELLED ✓
-            - PROCESSING → SHIPPED ✓
-            - SHIPPED → DELIVERED ✓
-            """
+                    Updates order status. Validates state transitions.
+                    
+                    **Valid Transitions**:
+                    - PENDING → PROCESSING ✓
+                    - PENDING → CANCELLED ✓
+                    - PROCESSING → SHIPPED ✓
+                    - SHIPPED → DELIVERED ✓
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(

@@ -6,10 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/**
- * Scheduled job to automatically update orders from PENDING → PROCESSING every 5 minutes.
- * Leverages Spring's scheduling abstraction for robust task management.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor

@@ -28,13 +28,13 @@ public class OrderRequestDTO {
     @Schema(
             description = "Customer email address",
             example = "customer@example.com",
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String customerEmail;
 
 
     @NotEmpty(message = "Order must contain at least one item")
     @Valid
-    @Schema(description = "List of items to order", required = true)
+    @Schema(description = "List of items to order", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<OrderItemDTO> items;
 }

@@ -5,11 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * Scheduler Configuration
- *
- * Only enables scheduling when property is true
- * Disabled by default in test profile
- *
  * @author Ganeshannt
  * @version 1.1
  * @since 2025-10-23

@@ -14,10 +14,6 @@ import org.springframework.context.annotation.Profile;
 import java.math.BigDecimal;
 
 /**
- * Test Data Initializer
- *
- * Only runs with 'test' profile
- * Loads minimal test data for integration tests
  *
  * @author Ganeshannt
  * @version 1.0
@@ -60,7 +56,7 @@ public class TestDataInitializer {
             orderRepository.save(order5);
 
             long totalOrders = orderRepository.count();
-            log.info("✅ Test data initialized - Total Orders: {}", totalOrders);
+            log.info("Test data initialized - Total Orders: {}", totalOrders);
         };
     }
 

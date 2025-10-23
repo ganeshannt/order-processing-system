@@ -22,11 +22,6 @@ import java.util.List;
  * 5. FetchType.LAZY: Avoid N+1 query problem, load items only when needed
  * 6. @ToString.Exclude/@EqualsAndHashCode.Exclude: Prevent infinite recursion in bidirectional relationships
  * <p>
- * Why these Lombok annotations?
- * - @Data: Generates getters, setters, toString, equals, hashCode
- * - @Builder: Fluent API for object creation
- * - @NoArgsConstructor: Required by JPA
- * - @AllArgsConstructor: For builder pattern
  */
 @Entity
 @Table(
@@ -66,17 +61,6 @@ public class Order {
 
     /**
      * Bidirectional One-to-Many relationship
-     * <p>
-     * Why mappedBy?
-     * - Indicates Order is NOT the owner of the relationship
-     * - OrderItem.order field owns the foreign key
-     * <p>
-     * Why cascade ALL?
-     * - When Order is saved, OrderItems are automatically saved
-     * - When Order is deleted, OrderItems are automatically deleted
-     * <p>
-     * Why orphanRemoval?
-     * - When OrderItem is removed from list, it's deleted from database
      */
     @OneToMany(
             mappedBy = "order",
@@ -91,13 +75,6 @@ public class Order {
 
     /**
      * Helper method to add OrderItem
-     * <p>
-     * Why this method?
-     * - Maintains bidirectional relationship consistency
-     * - Ensures both sides of the relationship are set
-     * - Prevents common bugs with JPA relationships
-     * <p>
-     * Best Practice: Always use helper methods for bidirectional relationships
      */
     public void addItem(OrderItem item) {
         items.add(item);
@@ -115,7 +92,6 @@ public class Order {
     /**
      * JPA Lifecycle Callback
      * <p>
-     * Why @PrePersist?
      * - Executes before entity is first persisted to database
      * - Sets default values
      * - Initializes state
