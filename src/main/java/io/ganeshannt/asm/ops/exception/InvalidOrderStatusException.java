@@ -4,12 +4,12 @@ import io.ganeshannt.asm.ops.enums.OrderStatus;
 
 /**
  * Exception thrown when attempting invalid order status transition
- *
+ * <p>
  * Use Cases:
  * - Trying to cancel non-PENDING order
  * - Invalid status transition (e.g., DELIVERED → PENDING)
  * - Business rule violation
- *
+ * <p>
  * Maps to HTTP 400 BAD REQUEST
  * - Client sent invalid request (not server error)
  * - Indicates a client should not retry without modification

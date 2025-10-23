@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 /**
  * OrderItem Entity - Represents individual items in an order
- *
+ * <p>
  * Design Decisions:
  * 1. ManyToOne relationship: Many items belong to one order
  * 2. FetchType.LAZY: Don't automatically load Order when fetching OrderItem

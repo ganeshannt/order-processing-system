@@ -38,17 +38,14 @@ import org.springframework.web.bind.annotation.*;
 )
 public class OrderController {
 
-    private final IOrderService orderService;
-
     /**
      * Pagination configuration constants
      */
-    private static final int DEFAULT_PAGE = 1;           // User-friendly: starts from 1
-    private static final int DEFAULT_SIZE = 10;          // Balanced page size
     private static final int MIN_PAGE = 1;               // Minimum page number
     private static final int MAX_PAGE = 1000;            // Maximum page number
     private static final int MIN_SIZE = 1;               // Minimum page size
     private static final int MAX_SIZE = 100;             // Maximum page size
+    private final IOrderService orderService;
 
     @PostMapping
     @Operation(

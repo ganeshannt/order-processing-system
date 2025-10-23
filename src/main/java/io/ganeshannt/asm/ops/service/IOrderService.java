@@ -28,7 +28,7 @@ public interface IOrderService {
     /**
      * Get all orders with pagination support
      *
-     * @param status Optional status filter
+     * @param status   Optional status filter
      * @param pageable Pagination parameters (page, size, sort)
      * @return Page of orders
      */

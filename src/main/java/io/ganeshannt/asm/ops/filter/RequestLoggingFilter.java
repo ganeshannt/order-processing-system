@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Adds a requestId to MDC for all logs for this request.
  * Also logs incoming request metadata at INFO level.
- *
+ * <p>
  * Keep filter simple so unit-testable; no business logic here.
  */
 @Component

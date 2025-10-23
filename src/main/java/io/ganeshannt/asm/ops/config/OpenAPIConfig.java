@@ -19,12 +19,6 @@ import java.util.List;
 @Configuration
 public class OpenAPIConfig {
 
-    @Value("${spring.application.name}")
-    private String applicationName;
-
-    @Value("${server.port:8080}")
-    private String serverPort;
-
     private static final String BUILD_DESCRIPTION = """
             Production-grade REST API for managing e-commerce orders with automated workflows.
             
@@ -54,6 +48,10 @@ public class OpenAPIConfig {
             3. Fill in required parameters
             4. Click **"Execute"** to test the API
             """;
+    @Value("${spring.application.name}")
+    private String applicationName;
+    @Value("${server.port:8080}")
+    private String serverPort;
 
     @Bean
     public OpenAPI customOpenAPI() {

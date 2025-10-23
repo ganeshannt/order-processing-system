@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Exception for business rule validation failures
- *
+ * <p>
  * Difference from Bean Validation (@Valid):
  * - Bean Validation: Structural validation (not null, format, range)
  * - Business Validation: Domain-specific rules (stock availability, price rules)

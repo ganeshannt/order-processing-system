@@ -162,5 +162,7 @@ INSERT INTO order_items (id, product_name, quantity, price, order_id)
 VALUES (38, 'Cable Management Kit', 3, 19.99, 10);
 
 -- CRITICAL: Reset sequences at the end
-ALTER TABLE orders ALTER COLUMN id RESTART WITH (SELECT MAX(id) + 1 FROM orders);
-ALTER TABLE order_items ALTER COLUMN id RESTART WITH (SELECT MAX(id) + 1 FROM order_items);
+ALTER TABLE orders
+    ALTER COLUMN id RESTART WITH (SELECT MAX(id) + 1 FROM orders);
+ALTER TABLE order_items
+    ALTER COLUMN id RESTART WITH (SELECT MAX(id) + 1 FROM order_items);

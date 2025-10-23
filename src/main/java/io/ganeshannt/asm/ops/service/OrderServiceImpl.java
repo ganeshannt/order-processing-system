@@ -74,9 +74,9 @@ public class OrderServiceImpl implements IOrderService {
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Implementation with Pagination Support
-     *
+     * <p>
      * Note: Items are loaded lazily within the @Transactional context
      * This avoids N+1 problem while supporting pagination
      */
