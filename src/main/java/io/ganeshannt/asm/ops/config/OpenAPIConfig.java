@@ -24,31 +24,14 @@ public class OpenAPIConfig {
     @Value("${spring.application.name:Order Processing System}")
     private String applicationName;
 
-    /**
-     * Configure OpenAPI documentation
-     * <p>
-     * Includes:
-     * - API metadata (title, version, description)
-     * - Contact information
-     * - License
-     * - Server URLs
-     * - Security schemes (for future use)
-     *
-     * @return OpenAPI configuration
-     */
+
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(apiInfo())
-                .servers(apiServers())
-                .components(securityComponents());
+                .servers(apiServers());
     }
 
-    /**
-     * API Information
-     * <p>
-     * Displayed at the top of Swagger UI
-     */
     private Info apiInfo() {
         return new Info()
                 .title("Order Processing System API")
@@ -112,30 +95,11 @@ public class OpenAPIConfig {
                         .url("http://localhost:8080")
                         .description("Local Development Server"),
                 new Server()
-                        .url("https://api-staging.example.com")
+                        .url("https://api-osp-stg.com")
                         .description("Staging Server"),
                 new Server()
-                        .url("https://api.example.com")
+                        .url("https://api-osp.com")
                         .description("Production Server")
         );
-    }
-
-    /**
-     * Security Components
-     * <p>
-     * Defines security schemes for API
-     * Currently configured for JWT Bearer token (for future implementation)
-     * <p>
-     * When security is implemented, endpoints will show "Authorize" button
-     */
-    private Components securityComponents() {
-        return new Components()
-                .addSecuritySchemes("bearerAuth",
-                        new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")
-                                .description("JWT Bearer token authentication. " +
-                                        "Format: Bearer {token}"));
     }
 }

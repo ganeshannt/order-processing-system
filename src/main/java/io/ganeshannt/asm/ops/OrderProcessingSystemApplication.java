@@ -18,7 +18,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @since 2025-10-22
  */
 @SpringBootApplication
-@EnableScheduling
 @EnableAsync
 public class OrderProcessingSystemApplication {
 

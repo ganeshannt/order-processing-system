@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: order-processing-system-test
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: test123
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  h2:
+    console:
+      enabled: false  # Disabled in tests
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop  # Fresh database for each test run
+    show-sql: false  # Reduce test output noise
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+
+  # No automatic data initialization in tests
+  sql:
+    init:
+      mode: never
+
+# Disable scheduler in tests
+order:
+  scheduler:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    io.ganeshannt.asm.ops: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+
+server:
+  port: 0  # Random port for tests

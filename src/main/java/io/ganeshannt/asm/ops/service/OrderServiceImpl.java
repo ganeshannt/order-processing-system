@@ -11,6 +11,8 @@ import io.ganeshannt.asm.ops.mapper.OrderMapper;
 import io.ganeshannt.asm.ops.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +21,9 @@ import java.util.List;
 
 /**
  * Order Service Implementation
+ *
  * @author Ganeshannt
- * @version 1.0
+ * @version 1.2
  * @since 2025-10-23
  */
 @Service
@@ -32,15 +35,6 @@ public class OrderServiceImpl implements IOrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Implementation Notes:
-     * - Validates business rules before persistence
-     * - Uses MapStruct for DTO-Entity conversion
-     * - Calculates total amount from line items
-     * - Logs for audit trail and monitoring
-     */
     @Override
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
@@ -48,18 +42,14 @@ public class OrderServiceImpl implements IOrderService {
                 request.getCustomerEmail(),
                 request.getItems().size());
 
-        // Business validation
         validateOrderRequest(request);
 
-        // Convert DTO to Entity
         Order order = orderMapper.toEntity(request);
 
-        // Business rule: Validate total amount
         if (order.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw OrderValidationException.invalidTotal();
         }
 
-        // Persist
         Order savedOrder = orderRepository.save(order);
 
         log.info("Order created successfully - ID: {}, Total: {}, Status: {}",
@@ -70,13 +60,6 @@ public class OrderServiceImpl implements IOrderService {
         return orderMapper.toResponseDTO(savedOrder);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Implementation Notes:
-     * - Uses JOIN FETCH query to avoid N+1 problem
-     * - Throws specific exception for 404 handling
-     */
     @Override
     public OrderResponseDTO getOrderById(Long id) {
         log.debug("Fetching order with ID: {}", id);
@@ -91,35 +74,44 @@ public class OrderServiceImpl implements IOrderService {
 
     /**
      * {@inheritDoc}
-     * <p>
-     * Implementation Notes:
-     * - Supports optional filtering by status
-     * - Uses optimized query with JOIN FETCH when filtering
-     * - Returns empty list if no orders found (not exception)
+     *
+     * Implementation with Pagination Support
+     *
+     * Note: Items are loaded lazily within the @Transactional context
+     * This avoids N+1 problem while supporting pagination
      */
     @Override
-    public List<OrderResponseDTO> getAllOrders(OrderStatus status) {
-        log.debug("Fetching all orders" + (status != null ? " with status: " + status : ""));
+    public Page<OrderResponseDTO> getAllOrders(OrderStatus status, Pageable pageable) {
+        log.debug("Fetching orders - Page: {}, Size: {}, Status: {}",
+                pageable.getPageNumber() + 1,  // Log as 1-indexed
+                pageable.getPageSize(),
+                status);
 
-        List<Order> orders;
+        Page<Order> ordersPage;
+
         if (status != null) {
-            orders = orderRepository.findByStatusWithItems(status);
+            // Filter by status with pagination
+            // Use the overloaded findByStatus method that accepts Pageable
+            ordersPage = orderRepository.findByStatus(status, pageable);
+            log.debug("Found {} orders with status {} (page {} of {})",
+                    ordersPage.getNumberOfElements(),
+                    status,
+                    ordersPage.getNumber() + 1,
+                    ordersPage.getTotalPages());
         } else {
-            orders = orderRepository.findAll();
+            // Get all orders with pagination
+            ordersPage = orderRepository.findAll(pageable);
+            log.debug("Found {} orders (page {} of {})",
+                    ordersPage.getNumberOfElements(),
+                    ordersPage.getNumber() + 1,
+                    ordersPage.getTotalPages());
         }
 
-        log.debug("Found {} orders", orders.size());
-        return orderMapper.toResponseDTOList(orders);
+        // Convert Page<Order> to Page<OrderResponseDTO>
+        // Items will be loaded lazily during mapping (within transaction)
+        return ordersPage.map(orderMapper::toResponseDTO);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Implementation Notes:
-     * - Business rule: Only PENDING orders can be cancelled
-     * - Uses entity method canBeCancelled() for domain logic
-     * - Throws specific exception for business rule violation
-     */
     @Override
     @Transactional
     public OrderResponseDTO cancelOrder(Long id) {
@@ -128,13 +120,11 @@ public class OrderServiceImpl implements IOrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> OrderNotFoundException.withId(id));
 
-        // Business rule validation
         if (!order.canBeCancelled()) {
             log.warn("Cannot cancel order {} - Current status: {}", id, order.getStatus());
             throw InvalidOrderStatusException.cannotCancel(order.getStatus());
         }
 
-        // Update status
         order.setStatus(OrderStatus.CANCELLED);
         Order updatedOrder = orderRepository.save(order);
 
@@ -142,14 +132,6 @@ public class OrderServiceImpl implements IOrderService {
         return orderMapper.toResponseDTO(updatedOrder);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Implementation Notes:
-     * - Validates state transitions using enum method
-     * - Prevents invalid status changes
-     * - Useful for admin operations and workflow management
-     */
     @Override
     @Transactional
     public OrderResponseDTO updateOrderStatus(Long id, OrderStatus newStatus) {
@@ -158,7 +140,6 @@ public class OrderServiceImpl implements IOrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> OrderNotFoundException.withId(id));
 
-        // Validate status transition
         if (!order.getStatus().canTransitionTo(newStatus)) {
             log.warn("Invalid status transition for order {} from {} to {}",
                     id, order.getStatus(), newStatus);
@@ -175,20 +156,6 @@ public class OrderServiceImpl implements IOrderService {
         return orderMapper.toResponseDTO(updatedOrder);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Implementation Notes:
-     * - Designed specifically for scheduler consumption
-     * - Handles errors gracefully (continues on individual failures)
-     * - Returns success count for monitoring
-     * - Logs detailed metrics for observability
-     * <p>
-     * Performance Considerations:
-     * - Current: Individual save() calls
-     * - Production: Use saveAll() for batch processing
-     * - Trade-off: Individual error handling vs batch performance
-     */
     @Override
     @Transactional
     public int promotePendingOrdersToProcessing() {
@@ -210,7 +177,6 @@ public class OrderServiceImpl implements IOrderService {
 
         for (Order order : pendingOrders) {
             try {
-                // Update status
                 order.setStatus(OrderStatus.PROCESSING);
                 orderRepository.save(order);
                 successCount++;
@@ -219,7 +185,6 @@ public class OrderServiceImpl implements IOrderService {
 
             } catch (Exception e) {
                 failureCount++;
-                // Log error but continue with other orders
                 log.error("Failed to promote order {} to PROCESSING - Error: {}",
                         order.getId(), e.getMessage(), e);
             }
@@ -230,10 +195,9 @@ public class OrderServiceImpl implements IOrderService {
         log.info("Promotion completed - Success: {}, Failed: {}, Duration: {}ms",
                 successCount, failureCount, duration);
 
-        // Alert on high failure rate
         if (failureCount > 0) {
             double failureRate = (double) failureCount / pendingOrders.size();
-            if (failureRate > 0.1) { // More than 10% failures
+            if (failureRate > 0.1) {
                 log.error("HIGH FAILURE RATE in order promotion: {}/{} failed ({}%)",
                         failureCount, pendingOrders.size(),
                         String.format("%.2f", failureRate * 100));
@@ -243,22 +207,7 @@ public class OrderServiceImpl implements IOrderService {
         return successCount;
     }
 
-
-    /**
-     * Private helper: Validate order request
-     * <p>
-     * Multi-layer Validation Strategy:
-     * - Layer 1: Bean Validation (@Valid) - structural constraints
-     * - Layer 2: This method - business rules
-     * - Layer 3: Database constraints - data integrity
-     * <p>
-     * Why private?
-     * - Internal implementation detail
-     * - Not part of public API
-     * - Can be refactored without breaking contract
-     */
     private void validateOrderRequest(OrderRequestDTO request) {
-        // Defense in depth: Check items (should be caught by @NotEmpty)
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw OrderValidationException.emptyOrder();
         }
