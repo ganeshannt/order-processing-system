@@ -47,8 +47,8 @@ order-processing-system/
 │       │   └── controller/      # Integration tests (WebTestClient)
 │       └── resources/
 │           └── application-test.yml  # Test profile configuration
-├── postman/
-│   └── Order-Processing-API.postman_collection.json
+├── docs/
+│   └── It has documents and Order-Processing-API.postman_collection.json
 ├── pom.xml
 └── README.md
 ```
@@ -151,7 +151,7 @@ java -jar target/order-processing-system-1.0.0.jar --spring.profiles.active=prod
 5. Click "Execute"
 
 **Option B: Postman Collection**
-1. Import `postman/Order-Processing-API.postman_collection.json` into Postman
+1. Import `docs/Order-Processing-API.postman_collection.json` into Postman
 2. Collection includes 30+ pre-configured requests
 3. Run requests individually or use Collection Runner
 
