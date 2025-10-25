@@ -44,7 +44,7 @@ public class OrderItemDTO {
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.01", message = "Price must be at least 0.01")
     @DecimalMax(value = "1000000.00", message = "Price cannot exceed 1,000,000.00")
-    @Digits(integer = 10, fraction = 2, message = "Price must have at most 10 digits and 2 decimal places")
+    @Digits(integer = 7, fraction = 2, message = "Price must have at most 10 digits and 2 decimal places")
     @Schema(
             description = "Price per unit",
             example = "1299.99",

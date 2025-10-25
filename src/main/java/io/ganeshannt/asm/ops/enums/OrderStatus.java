@@ -30,7 +30,7 @@ public enum OrderStatus {
     public boolean canTransitionTo(OrderStatus newStatus) {
         return switch (this) {
             case PENDING -> newStatus == PROCESSING || newStatus == CANCELLED;
-            case PROCESSING -> newStatus == SHIPPED || newStatus == CANCELLED;
+            case PROCESSING -> newStatus == SHIPPED;
             case SHIPPED -> newStatus == DELIVERED;
             case DELIVERED, CANCELLED -> false; // Terminal states
         };
