@@ -46,9 +46,9 @@ order:
 
 logging:
   level:
-    root: WARN
-    io.ganeshannt.asm.ops: INFO
-    org.springframework.web: WARN
+    root: DEBUG
+    io.ganeshannt.asm.ops: DEBUG
+    org.springframework.web: DEBUG
     org.hibernate.SQL: WARN
 
 server:
