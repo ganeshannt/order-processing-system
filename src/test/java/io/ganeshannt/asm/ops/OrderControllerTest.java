@@ -756,7 +756,7 @@ class OrderControllerTest {
                 .expectBody(OrderResponseDTO.class)
                 .value(response -> assertThat(response.getStatus()).isEqualTo(OrderStatus.DELIVERED));
 
-        // Step 5: Verify final state
+        // Step 5: Verify the final state
         webTestClient.get()
                 .uri("/api/v1/orders/" + orderId)
                 .exchange()

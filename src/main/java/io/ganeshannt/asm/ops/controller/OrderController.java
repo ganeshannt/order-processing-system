@@ -107,7 +107,7 @@ public class OrderController {
     })
     public ResponseEntity<OrderResponseDTO> getOrderById(
             @Parameter(description = "Order ID", example = "1", required = true)
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
 
         log.debug("GET /api/v1/orders/{} - Fetching order", id);
 
@@ -246,7 +246,7 @@ public class OrderController {
     })
     public ResponseEntity<OrderResponseDTO> cancelOrder(
             @Parameter(description = "Order ID to cancel", example = "1", required = true)
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
 
         log.info("PATCH /api/v1/orders/{}/cancel - Cancelling order", id);
 
@@ -287,7 +287,7 @@ public class OrderController {
     })
     public ResponseEntity<OrderResponseDTO> updateOrderStatus(
             @Parameter(description = "Order ID", example = "1", required = true)
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Parameter(description = "New order status", example = "PROCESSING", required = true)
             @RequestParam OrderStatus status) {
 
