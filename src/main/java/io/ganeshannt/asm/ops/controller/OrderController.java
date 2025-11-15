@@ -45,6 +45,7 @@ public class OrderController {
     private static final int MAX_PAGE = 1000;            // Maximum page number
     private static final int MIN_SIZE = 1;               // Minimum page size
     private static final int MAX_SIZE = 100;             // Maximum page size
+
     private final IOrderService orderService;
 
     @PostMapping
@@ -68,7 +69,8 @@ public class OrderController {
             )
     })
     public ResponseEntity<OrderResponseDTO> createOrder(
-            @Valid @RequestBody
+            @Valid
+            @RequestBody
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Order details including customer email and items",
                     required = true
@@ -115,7 +117,6 @@ public class OrderController {
 
         return ResponseEntity.ok(response);
     }
-
 
     @GetMapping
     @Operation(
@@ -165,19 +166,19 @@ public class OrderController {
                     description = "Page number (1-1000, 1-indexed)",
                     example = "1"
             )
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "page", defaultValue = "1") int page,
 
             @Parameter(
                     description = "Number of items per page (1-100)",
                     example = "10"
             )
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(name = "size", defaultValue = "10") int size,
 
             @Parameter(
                     description = "Filter by order status (optional)",
                     example = "PENDING"
             )
-            @RequestParam(required = false) OrderStatus status) {
+            @RequestParam(name = "status", required = false) OrderStatus status) {
 
         // Validate and sanitize pagination parameters
         // Clamp page to valid range: 1-1000
@@ -289,7 +290,7 @@ public class OrderController {
             @Parameter(description = "Order ID", example = "1", required = true)
             @PathVariable("id") Long id,
             @Parameter(description = "New order status", example = "PROCESSING", required = true)
-            @RequestParam OrderStatus status) {
+            @RequestParam(name = "status") OrderStatus status) {
 
         log.info("PUT /api/v1/orders/{}/status - Updating to {}", id, status);
 
