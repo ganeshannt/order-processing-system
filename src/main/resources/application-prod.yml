@@ -10,15 +10,11 @@ spring:
       on-profile: prod
 
   datasource:
-    # Production should use external database (PostgreSQL, MySQL, etc.)
-    # H2 is used here only for demonstration
-    # In real production, use:
-    # url: jdbc:postgresql://localhost:5432/orderdb
-    # driver-class-name: org.postgresql.Driver
-    url: jdbc:h2:file:./data/orderdb_prod  # File-based H2 for persistence
-    driver-class-name: org.h2.Driver
-    username: ${DB_USERNAME:sa}  # Read from environment variable
-    password: ${DB_PASSWORD:}     # Read from environment variable
+    # Production uses PostgreSQL
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:orderdb}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
@@ -31,7 +27,7 @@ spring:
       enabled: false  # Disabled in production for security
 
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update  # Only update schema, never drop
     show-sql: false     # Don't log SQL in production
@@ -39,15 +35,13 @@ spring:
       hibernate:
         format_sql: false
         use_sql_comments: false
-        jdbc:
-          batch_size: 50  # Larger batch size for production
+#        jdbc:
+#          batch_size: 50  # Larger batch size for production
         order_inserts: true
         order_updates: true
         # Production performance optimizations
         query:
           plan_cache_max_size: 2048
-        jdbc:
-          fetch_size: 50
     open-in-view: false
 
   # No automatic data initialization in production
@@ -58,12 +52,12 @@ spring:
 # Production logging - structured JSON format
 logging:
   level:
-    root: WARN
+    root: INFO # ideally it should be warn in prod
     io.ganeshannt.asm.ops: INFO
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
 
 # Production server settings
 server:

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-processing-system
+  labels:
+    app.kubernetes.io/name: order-processing-system
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: order-processing-system
+spec:
+  type: NodePort # Expose externally for Minikube
+  sessionAffinity: None # Explicitly set session affinity
+  selector:
+    app.kubernetes.io/name: order-processing-system
+    app.kubernetes.io/component: backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080 # Optional: fixed port for easier access
